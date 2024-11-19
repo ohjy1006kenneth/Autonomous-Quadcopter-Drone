@@ -3,7 +3,7 @@ from rclpy.node import Node
 
 from std_msgs.msg import String
 from sensor_msgs.msg import Joy
-import serial
+
 
 class controlPublisher(Node):
 
@@ -16,8 +16,7 @@ class controlPublisher(Node):
         self.roll = 0
         self.pitch = 0
         
-        # Initialize serial connection
-        self.serial_port = serial.Serial("/dev/ttyACM1", 115200, timeout=1)
+        
         
         # Subscribers
         self.subscription = self.create_subscription(
@@ -29,24 +28,25 @@ class controlPublisher(Node):
         
         # Publisher
         self.controlPub = self.create_publisher(String, '/cmd_drone', 10)
-    
-    # Joystick Callback Function (Get Input from xbox controller, and send it over the serial port)
+
+    # Joystick Callback Function (Get Input from xbox controller, and publish as cmd_drone)
     def joystick_callback(self, msg):
         axes = msg.axes
         buttons = msg.buttons
         
-        self.yaw = axes[0]
-        self.throttle = axes[1]
-        self.roll = axes[3]
-        self.pitch = axes[4]
+        self.yaw = self.parse_input(-axes[0])
+        self.throttle = self.parse_input(axes[1])
+        self.roll = self.parse_input(-axes[3])
+        self.pitch = self.parse_input(axes[4])
         
         msg = String()
-        msg.data = "\nYaw: %s\nThrottle: %s\nRoll: %s\nPitch: %s\n" % (self.yaw, self.throttle, self.roll, self.pitch)
+        msg.data = "\nYaw: %d\nThrottle: %d\nRoll: %d\nPitch: %d\n" % (self.yaw, self.throttle, self.roll, self.pitch)
+        self.get_logger().info(msg.data)
         self.controlPub.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
-        
-        # Send msg.data over the serial connection to Arduino Nano
-        self.serial_port.write(msg.data.encode('utf-8'))
+    
+    # Helper function to parse xbox controller input to percentage
+    def parse_input(self, input):
+        return (input + 1) * 50
         
         
 

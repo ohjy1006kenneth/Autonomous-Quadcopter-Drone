@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'controls_pub = controls.control_publisher:main',
+            'arduino = controls.arduino:main',
         ],
     },
 )

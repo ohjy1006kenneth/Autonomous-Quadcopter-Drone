@@ -1,0 +1,10 @@
+.vscode/
+cmake_install.cmake
+build/
+install/
+bin/
+lib/
+log/
+msg_gen/
+srv_gen/
+libraries/
