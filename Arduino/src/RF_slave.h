@@ -1,29 +1,33 @@
 #ifndef RF_SLAVE_H
 #define RF_SLAVE_H
 
-#include <RF24.h>
 #include <SPI.h>
 #include <nRF24L01.h>
+#include <RF24.h>
+#include "RF_master.h"
 
-#define SLAVE_CE 5
-#define SLAVE_CSN 6
+#define CE_PIN 9
+#define CSN_PIN 10
 
-const byte slaveAddress[5] = { 'R', 'x', 'A', 'A', 'A' };
-
-struct Tel_Package {
-    byte height;
-    byte acc_x;
-    byte acc_y;
-    byte acc_z;
-};
-
-bool RF_slave_init();
+const byte thisSlaveAddress[5] = { 'R', 'x', 'A', 'A', 'A' };
 
 /**
- * @brief
+ * @brief Set the up radio slave object
  *
- * @param tel_data
  */
-void tel_transceive(Tel_Package* tel_data);
+void setup_radio_slave();
+
+/**
+ * @brief Send telemetry data to master and receive cmd data from master
+ *
+ */
+void transceive_slave();
+
+/**
+ * @brief Update telemetry package
+ *
+ * @param telemPackage
+ */
+void updateTelemPackage(Telem_Package *telemPackage);
 
 #endif

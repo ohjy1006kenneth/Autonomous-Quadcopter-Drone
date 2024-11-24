@@ -4,20 +4,38 @@
 #include <RF24.h>
 #include <SPI.h>
 #include <nRF24L01.h>
-#include "RF_slave.h"
 
-#define MASTER_CE 2
-#define MASTER_CSN 3
+#define CE_PIN 9
+#define CSN_PIN 10
 
-const byte slaveSelect[5] = { 'R', 'x', 'A', 'A', 'A' };
+const byte slaveAddress[5] = { 'R', 'x', 'A', 'A', 'A' };
 
-bool RF_master_init();
+// Command data package to send to drone (Max 32 bytes)
+struct Cmd_Package {
+    int throttle;
+    int yaw;
+    int roll;
+    int pitch;
+};
+
+// Telemetry data package to receive from drone (Max 32 bytes)
+struct Telem_Package {
+    int altitude;
+    int heading;
+    int pitch;
+    int roll;
+};
 
 /**
- * @brief Send command data to drone and receive telemetry data from drone.
+ * @brief Set the up radio master object
  *
- * @param tel_data Pointer to the telemetry data package.
  */
-void cmd_transceive(Tel_Package* tel_data); 
+void setup_radio_master();
+
+/**
+ * @brief Send command data to slave and receive ack data from slave
+ *
+ */
+void transceive_master();
 
 #endif

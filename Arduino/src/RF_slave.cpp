@@ -1,16 +1,35 @@
 #include "RF_slave.h"
 
-RF24 RF_slave(SLAVE_CE, SLAVE_CSN);
+RF24 radio_slave(CE_PIN, CSN_PIN);
 
-bool RF_slave_init()
+Cmd_Package cmd_rx;
+Telem_Package telem_rx;
+
+void setup_radio_slave()
 {
-    while (!Serial)
-        ;
+    radio_slave.begin();
+    radio_slave.setPALevel(RF24_PA_HIGH);
+    radio_slave.setDataRate(RF24_250KBPS);
+    radio_slave.enableAckPayload();
+    radio_slave.openReadingPipe(1, thisSlaveAddress);
+    radio_slave.startListening();
+    radio_slave.writeAckPayload(1, &telem_rx, sizeof(Telem_Package));
 
-    RF_slave.begin();
-    RF_slave.setDataRate(RF24_250KBPS);
-    RF_slave.openReadingPipe(1, slaveAddress);
-    RF_slave.enableAckPayload();
-    RF_slave.startListening();
-    return true;
+    Serial.println("Radio slave setup done");
+}
+
+void transceive_slave()
+{
+    if (radio_slave.available()) {
+        radio_slave.read(&cmd_rx, sizeof(Cmd_Package));
+
+        // Update ack data with Imu
+
+        telem_rx.altitude = 1;
+        telem_rx.heading = 2;
+        telem_rx.pitch = 3;
+        telem_rx.roll = 4;
+
+        radio_slave.writeAckPayload(1, &telem_rx, sizeof(Telem_Package));
+    }
 }

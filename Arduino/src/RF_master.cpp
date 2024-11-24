@@ -1,67 +1,70 @@
 #include "RF_master.h"
 
-// TODO: Try converting to percentage inside control_publisher.py and parse into data package in this file.
+RF24 radio_master(CE_PIN, CSN_PIN);
 
-bool newData = false;
+Cmd_Package cmd_tx;
+Telem_Package telem_tx;
 
-struct Cmd_Package {
-    byte yaw;
-    byte throttle;
-    byte pitch;
-    byte roll;
-};
-
-Cmd_Package cmd_data;
-RF24 RF_master(MASTER_CE, MASTER_CSN);
-
-// Helper function to show the Ack Data
-void showAckData() { }
-
-// Helper function to parse string data from laptop into commadn data package
-void parseCmdData(String temp, Cmd_Package& cmd_data)
+// Get command data from laptop
+bool get_cmd()
 {
-    byte yaw, throttle, pitch, roll;
-    sscanf(temp.c_str(), "%d %d %d %d", &yaw, &throttle, &pitch, &roll);
-    cmd_data.yaw = yaw;
-    cmd_data.throttle = throttle;
-    cmd_data.pitch = pitch;
-    cmd_data.roll = roll;
-}
-
-bool RF_master_init()
-{
-    RF_master.begin();
-    RF_master.setDataRate(RF24_250KBPS);
-
-    RF_master.enableAckPayload();
-
-    RF_master.setRetries(5, 5);
-
-    RF_master.openWritingPipe(slaveSelect);
-    return true;
-}
-
-void cmd_transceive(Tel_Package *tel_data)
-{
-    newData = false;
-
     if (Serial.available() > 0) {
-        String temp = Serial.readString();
-        parseCmdData(temp, cmd_data);
-    } else {
-        Serial.println("No data received!");
+        String temp = Serial.readStringUntil('\n'); // Read the incoming string
+
+        // Parse the string and extract values
+        int throttleIndex = temp.indexOf("Throttle: ") + 10;
+        int yawIndex = temp.indexOf("Yaw: ") + 5;
+        int rollIndex = temp.indexOf("Roll: ") + 6;
+        int pitchIndex = temp.indexOf("Pitch: ") + 7;
+
+        cmd_tx.throttle = temp.substring(throttleIndex, temp.indexOf("Yaw: ", throttleIndex)).toInt();
+        cmd_tx.yaw = temp.substring(yawIndex, temp.indexOf("Roll: ", yawIndex)).toInt();
+        cmd_tx.roll = temp.substring(rollIndex, temp.indexOf("Pitch: ", rollIndex)).toInt();
+        cmd_tx.pitch = temp.substring(pitchIndex, temp.length()).toInt();
+
+        return true;
     }
-    
-    Serial.println(cmd_data.yaw);
 
+    return false;
+}
 
-    // bool rslt;
-    // rslt = RF_master.write(&cmd_data, sizeof(Cmd_Package));
+void setup_radio_master()
+{
+    radio_master.begin();
+    radio_master.setPALevel(RF24_PA_HIGH);
+    radio_master.setDataRate(RF24_250KBPS);
+    radio_master.enableAckPayload();
+    radio_master.setRetries(5, 15); // delay, count (5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload)
+    radio_master.openWritingPipe(slaveAddress);
 
-    // if (rslt) {
-    //     if (RF_master.isAckPayloadAvailable()) {
-    //         RF_master.read(tel_data, sizeof(Tel_Package));
-    //         newData = true;
-    //     }
-    // }
+    Serial.println("Radio master setup done");
+}
+
+void transceive_master()
+{
+    bool rslt;
+    if (get_cmd()) {
+
+        rslt = radio_master.write(&cmd_tx, sizeof(Cmd_Package));
+
+        if (rslt) { // Sending data was successful
+            if (radio_master.isAckPayloadAvailable()) {
+                radio_master.read(&telem_tx, sizeof(Telem_Package));
+
+                Serial.println("Ack Payload Received: ");
+                Serial.print("Altitude: ");
+                Serial.println(telem_tx.altitude);
+                Serial.print("Heading: ");
+                Serial.println(telem_tx.heading);
+                Serial.print("Pitch: ");
+                Serial.println(telem_tx.pitch);
+                Serial.print("Roll: ");
+                Serial.println(telem_tx.roll);
+            } else {
+                Serial.println("No Ack Payload Received");
+            }
+        } else {
+            Serial.println("Sending data failed");
+        }
+    }
 }
