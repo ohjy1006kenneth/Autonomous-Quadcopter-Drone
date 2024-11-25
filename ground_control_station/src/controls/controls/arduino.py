@@ -22,11 +22,10 @@ class Arduino(Node):
         device_node = self.detect_arduino_usb()
         self.serial_port = serial.Serial(device_node, 9600, timeout=1)
         
-        self.timer = self.create_timer(1, self.print_arduino_data)
+        self.timer = self.create_timer((1/9600), self.print_arduino_data)
 
     def cmd_subscriber(self, msg):
         # Send msg.data over the serial connection to Arduino Nano]
-        msg.data = "test"
         self.serial_port.write(msg.data.encode('utf-8'))
             
     def print_arduino_data(self):

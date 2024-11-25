@@ -40,7 +40,7 @@ class controlPublisher(Node):
         self.pitch = self.parse_input(axes[4])
         
         msg = String()
-        msg.data = "\nYaw: %d\nThrottle: %d\nRoll: %d\nPitch: %d\n" % (self.yaw, self.throttle, self.roll, self.pitch)
+        msg.data = "Throttle: %dYaw: %dRoll: %dPitch: %d\n" % (self.throttle, self.yaw, self.roll, self.pitch)
         self.get_logger().info(msg.data)
         self.controlPub.publish(msg)
     
