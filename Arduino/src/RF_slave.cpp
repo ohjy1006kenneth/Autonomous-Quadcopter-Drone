@@ -20,12 +20,5 @@ void transceive_slave(Cmd_Package* cmd, Telem_Package* telem)
 
     if (radio_slave.available()) {
         radio_slave.read(telem, sizeof(Telem_Package));
-
-        Serial.print("Altitude: ");
-        Serial.println(telem->altitude);
-        Serial.print("Heading: ");
-        Serial.println(telem->heading);
-        Serial.print("Speed: ");
-        Serial.println(telem->speed);
     }
 }

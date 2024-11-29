@@ -40,22 +40,28 @@ void setup()
         Serial.println("Pressure sersor NULL");
     }
     delay(1000);
-    telem_drone.speed = 0.0;
 }
 
 void loop()
 {
+    // Get data from IMU
+    IMU_ST_ANGLES_DATA stAngles;
+    IMU_ST_SENSOR_DATA stGyroRawData;
+    IMU_ST_SENSOR_DATA stAccelRawData;
+    IMU_ST_SENSOR_DATA stMagnRawData;
+    int32_t s32PressureVal = 0, s32TemperatureVal = 0, s32AltitudeVal = 0;
+
+    imuDataGet(&stAngles, &stGyroRawData, &stAccelRawData, &stMagnRawData);
+    pressSensorDataGet(&s32TemperatureVal, &s32PressureVal, &s32AltitudeVal);
+
     // Update telemetry package
-    telem_drone.altitude = 0.0;
-    telem_drone.heading = 0.0;
-    
+    telem_drone.altitude = (float)s32AltitudeVal / 100;
+
     transceive_master(&cmd_drone, &telem_drone);
 
-    telem_drone.speed = telem_drone.speed + 0.1;
     delay(1000);
 }
 #endif
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +99,7 @@ void loop()
         cmd_gcs.roll = temp.substring(rollIndex, temp.indexOf("Pitch: ", rollIndex)).toInt();
         cmd_gcs.pitch = temp.substring(pitchIndex, temp.length()).toInt();
     }
-    transceive_slave(&cmd_gcs, &telem_gcs);
+    transceive_slave(&cmd_gcs, &telem_gcs, );
 }
 
 #endif

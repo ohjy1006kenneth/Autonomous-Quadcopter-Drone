@@ -10,8 +10,6 @@ void setup_radio_master()
     radio_master.enableAckPayload();
     radio_master.setRetries(5, 15); // delay, count (5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload)
     radio_master.openWritingPipe(slaveAddress);
-
-    Serial.println("Radio master setup done");
 }
 
 void transceive_master(Cmd_Package* cmd, Telem_Package* telem)
@@ -32,8 +30,6 @@ void transceive_master(Cmd_Package* cmd, Telem_Package* telem)
             Serial.println(cmd->roll);
             Serial.print("Pitch: ");
             Serial.println(cmd->pitch);
-        } else {
-            Serial.println("No Ack Payload Received");
         }
     } else {
         Serial.println("Sending data failed");
