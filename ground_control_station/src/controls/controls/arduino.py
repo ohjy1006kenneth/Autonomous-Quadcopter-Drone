@@ -25,8 +25,20 @@ class Arduino(Node):
         self.timer = self.create_timer((1/9600), self.print_arduino_data)
 
     def cmd_subscriber(self, msg):
-        # Send msg.data over the serial connection to Arduino Nano]
-        self.serial_port.write(msg.data.encode('utf-8'))
+        try:
+            # Flush the serial buffer before writing
+            self.serial_port.flush()
+            
+            # Send msg.data over the serial connection to Arduino Nano
+            self.serial_port.write(msg.data.encode('utf-8'))
+            
+            # Flush the serial buffer after writing
+            self.serial_port.flush()
+            
+        except serial.SerialTimeoutException:
+            self.get_logger().error('Write timeout occurred')
+        except serial.SerialException as e:
+            self.get_logger().error(f'Serial exception: {e}')
             
     def print_arduino_data(self):
         # Check if there is data available on the serial port

@@ -4,7 +4,7 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
-#include "RF_master.h"
+#include "main.h"
 
 #define CE_PIN 9
 #define CSN_PIN 10
@@ -21,13 +21,6 @@ void setup_radio_slave();
  * @brief Send telemetry data to master and receive cmd data from master
  *
  */
-void transceive_slave();
-
-/**
- * @brief Update telemetry package
- *
- * @param telemPackage
- */
-void updateTelemPackage(Telem_Package *telemPackage);
+void transceive_slave(Cmd_Package *cmd, Telem_Package *telem);
 
 #endif

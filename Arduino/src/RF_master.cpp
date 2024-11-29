@@ -2,32 +2,6 @@
 
 RF24 radio_master(CE_PIN, CSN_PIN);
 
-Cmd_Package cmd_tx;
-Telem_Package telem_tx;
-
-// Get command data from laptop
-bool get_cmd()
-{
-    if (Serial.available() > 0) {
-        String temp = Serial.readStringUntil('\n'); // Read the incoming string
-
-        // Parse the string and extract values
-        int throttleIndex = temp.indexOf("Throttle: ") + 10;
-        int yawIndex = temp.indexOf("Yaw: ") + 5;
-        int rollIndex = temp.indexOf("Roll: ") + 6;
-        int pitchIndex = temp.indexOf("Pitch: ") + 7;
-
-        cmd_tx.throttle = temp.substring(throttleIndex, temp.indexOf("Yaw: ", throttleIndex)).toInt();
-        cmd_tx.yaw = temp.substring(yawIndex, temp.indexOf("Roll: ", yawIndex)).toInt();
-        cmd_tx.roll = temp.substring(rollIndex, temp.indexOf("Pitch: ", rollIndex)).toInt();
-        cmd_tx.pitch = temp.substring(pitchIndex, temp.length()).toInt();
-
-        return true;
-    }
-
-    return false;
-}
-
 void setup_radio_master()
 {
     radio_master.begin();
@@ -40,31 +14,28 @@ void setup_radio_master()
     Serial.println("Radio master setup done");
 }
 
-void transceive_master()
+void transceive_master(Cmd_Package* cmd, Telem_Package* telem)
 {
     bool rslt;
-    if (get_cmd()) {
+    rslt = radio_master.write(telem, sizeof(Telem_Package));
 
-        rslt = radio_master.write(&cmd_tx, sizeof(Cmd_Package));
+    if (rslt) { // Sending data was successful
+        if (radio_master.isAckPayloadAvailable()) {
+            radio_master.read(cmd, sizeof(Cmd_Package));
 
-        if (rslt) { // Sending data was successful
-            if (radio_master.isAckPayloadAvailable()) {
-                radio_master.read(&telem_tx, sizeof(Telem_Package));
-
-                Serial.println("Ack Payload Received: ");
-                Serial.print("Altitude: ");
-                Serial.println(telem_tx.altitude);
-                Serial.print("Heading: ");
-                Serial.println(telem_tx.heading);
-                Serial.print("Pitch: ");
-                Serial.println(telem_tx.pitch);
-                Serial.print("Roll: ");
-                Serial.println(telem_tx.roll);
-            } else {
-                Serial.println("No Ack Payload Received");
-            }
+            Serial.println("Ack Payload Received: ");
+            Serial.print("Throttle: ");
+            Serial.println(cmd->throttle);
+            Serial.print("Yaw: ");
+            Serial.println(cmd->yaw);
+            Serial.print("Roll: ");
+            Serial.println(cmd->roll);
+            Serial.print("Pitch: ");
+            Serial.println(cmd->pitch);
         } else {
-            Serial.println("Sending data failed");
+            Serial.println("No Ack Payload Received");
         }
+    } else {
+        Serial.println("Sending data failed");
     }
 }
