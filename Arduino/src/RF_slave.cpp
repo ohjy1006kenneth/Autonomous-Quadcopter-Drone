@@ -16,23 +16,7 @@ void setup_radio_slave()
 
 void transceive_slave(Cmd_Package* cmd, Telem_Package* telem)
 {
-    // Update Ack data (Cmd data from laptop)
-    if (Serial.available() > 0) {
-        String temp = Serial.readStringUntil('\n'); // Read the incoming string
-
-        // Parse the string and extract values
-        int throttleIndex = temp.indexOf("Throttle: ") + 10;
-        int yawIndex = temp.indexOf("Yaw: ") + 5;
-        int rollIndex = temp.indexOf("Roll: ") + 6;
-        int pitchIndex = temp.indexOf("Pitch: ") + 7;
-
-        cmd->throttle = temp.substring(throttleIndex, temp.indexOf("Yaw: ", throttleIndex)).toInt();
-        cmd->yaw = temp.substring(yawIndex, temp.indexOf("Roll: ", yawIndex)).toInt();
-        cmd->roll = temp.substring(rollIndex, temp.indexOf("Pitch: ", rollIndex)).toInt();
-        cmd->pitch = temp.substring(pitchIndex, temp.length()).toInt();
-
-        radio_slave.writeAckPayload(1, cmd, sizeof(Cmd_Package));
-    }
+    radio_slave.writeAckPayload(1, cmd, sizeof(Cmd_Package));
 
     if (radio_slave.available()) {
         radio_slave.read(telem, sizeof(Telem_Package));
