@@ -1,7 +1,7 @@
 #define PROG_DRONE 1
 #define PROG_GCS 2
 
-#define PROG PROG_GCS
+#define PROG PROG_DRONE
 
 #include "src/main.h"
 
@@ -16,6 +16,9 @@ Telem_Package telem_drone;
 
 // Sensor connection state
 bool gbSenserConnectState = false;
+
+const int pwm = 6;
+const int pot = A0;
 
 void setup()
 {
@@ -99,7 +102,7 @@ void loop()
         cmd_gcs.roll = temp.substring(rollIndex, temp.indexOf("Pitch: ", rollIndex)).toInt();
         cmd_gcs.pitch = temp.substring(pitchIndex, temp.length()).toInt();
     }
-    transceive_slave(&cmd_gcs, &telem_gcs, );
+    transceive_slave(&cmd_gcs, &telem_gcs);
 }
 
 #endif
