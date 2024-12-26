@@ -1,15 +1,14 @@
 #ifndef RF_MASTER_H
 #define RF_MASTER_H
 
-#include "main.h"
+#include <Arduino.h>
 #include <RF24.h>
 #include <SPI.h>
 #include <nRF24L01.h>
+#include "main.h"
 
 #define CE_PIN 9
 #define CSN_PIN 10
-
-const byte slaveAddress[5] = { 'R', 'x', 'A', 'A', 'A' };
 
 
 /**

@@ -1,9 +1,11 @@
 #include "RF_master.h"
 
+const byte slaveAddress[5] = { 'R', 'x', 'A', 'A', 'A' };
 RF24 radio_master(CE_PIN, CSN_PIN);
 
 void setup_radio_master()
 {
+    radio_connected = false;
     radio_master.begin();
     radio_master.setPALevel(RF24_PA_HIGH);
     radio_master.setDataRate(RF24_250KBPS);
@@ -21,17 +23,13 @@ void transceive_master(Cmd_Package* cmd, Telem_Package* telem)
         if (radio_master.isAckPayloadAvailable()) {
             radio_master.read(cmd, sizeof(Cmd_Package));
 
-            Serial.println("Ack Payload Received: ");
-            Serial.print("Throttle: ");
-            Serial.println(cmd->throttle);
-            Serial.print("Yaw: ");
-            Serial.println(cmd->yaw);
-            Serial.print("Roll: ");
-            Serial.println(cmd->roll);
-            Serial.print("Pitch: ");
-            Serial.println(cmd->pitch);
+            if (cmd != NULL) {
+                radio_connected = true;
+            } else {
+                radio_connected = false;
+            }
+        } else {
+            Serial.println("Sending data failed");
         }
-    } else {
-        Serial.println("Sending data failed");
     }
 }
