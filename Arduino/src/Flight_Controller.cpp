@@ -1,6 +1,6 @@
 #include "Flight_Controller.h"
 
-DroneMode mode;
+DroneMode mode; // Drone Mode (STANDBY, FLIGHT, FAIL_SAVE, AUTONOMOUS, TRACK_HUMAN)
 
 void flight_controller_setup()
 {
@@ -14,7 +14,7 @@ void flight_controller_setup()
     digitalWrite(GREEN_LED, LOW); // Turn off the GREEN LED
 
     // IMU Setup
-    while (imu_connected == false) {
+    do {
         IMU_EN_SENSOR_TYPE enMotionSensorType, enPressureType;
         imuInit(&enMotionSensorType, &enPressureType);
         if ((IMU_EN_SENSOR_TYPE_ICM20948 == enMotionSensorType) && (IMU_EN_SENSOR_TYPE_BMP280 == enPressureType)) {
@@ -22,23 +22,23 @@ void flight_controller_setup()
         } else {
             imu_connected = false;
         }
-    }
+    } while (imu_connected == false);
     Serial.println("IMU Connection Established");
 
-    // RF Setup
-    setup_radio_master();
-    while (radio_connected == false) {
+    // Radio Setup
+    do {
         // Blink the RED LED to indicate that the drone is not ready to fly
         digitalWrite(RED_LED, HIGH);
         delay(500);
         digitalWrite(RED_LED, LOW);
         delay(500);
-    }
-    Serial.println("RF Connection Established");
+
+        radio_connected = setup_radio_master();
+    } while (radio_connected == false);
+    Serial.println("Radio Connection Established");
 
     // Set initial state of the drone to STANDBY
     mode = STANDBY;
-
 
     // Set the GREEN LED to indicate that the drone is ready to fly
     digitalWrite(GREEN_LED, HIGH);
@@ -105,6 +105,7 @@ void pot_pwm_setup(int pwm, int pot)
     input = pot;
 
     pinMode(pwm, OUTPUT);
+    
     pinMode(pot, INPUT);
 }
 
